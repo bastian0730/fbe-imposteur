@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>FBE Imposteur</title>
+
+<style>
+body{
+  font-family: Arial;
+  background:#111;
+  color:white;
+  text-align:center;
+}
+input, button{
+  padding:10px;
+  margin:5px;
+  font-size:16px;
+}
+.card{
+  background:#222;
+  padding:10px;
+  margin:10px auto;
+  width:80%;
+  border-radius:10px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🎭 FBE IMPOSTEUR</h1>
+
+<div id="login">
+  <input id="room" placeholder="Code de partie">
+  <input id="name" placeholder="Ton pseudo">
+  <br>
+  <button onclick="join()">Rejoindre</button>
+</div>
+
+<div id="game" style="display:none;">
+  <h2 id="info"></h2>
+
+  <input id="word" placeholder="Ton mot">
+  <button onclick="sendWord()">Envoyer</button>
+
+  <h3>Mots des joueurs :</h3>
+  <div id="words"></div>
+</div>
+
+<script>
+
+let room="";
+let player="";
+
+let dataStore = {}; // stockage local simple
+
+function join(){
+  room=document.getElementById("room").value;
+  player=document.getElementById("name").value;
+
+  document.getElementById("login").style.display="none";
+  document.getElementById("game").style.display="block";
+
+  document.getElementById("info").innerText=
+  "Room: "+room+" | Joueur: "+player;
+
+  if(!dataStore[room]) dataStore[room]={};
+
+  updateDisplay();
+}
+
+function sendWord(){
+  let w=document.getElementById("word").value;
+  dataStore[room][player]=w;
+  updateDisplay();
+}
+
+function updateDisplay(){
+  let html="";
+  for(let p in dataStore[room]){
+    html += "<div class='card'><b>"+p+"</b> : "+dataStore[room][p]+"</div>";
+  }
+  document.getElementById("words").innerHTML=html;
+}
+
+</script>
+
+</body>
+</html>
