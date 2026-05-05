@@ -2,37 +2,25 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>FBE Imposteur</title>
+<title>FBE Imposteur Online</title>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
 <style>
-body{
-  font-family: Arial;
-  background:#111;
-  color:white;
-  text-align:center;
-}
-input, button{
-  padding:10px;
-  margin:5px;
-  font-size:16px;
-}
-.card{
-  background:#222;
-  padding:10px;
-  margin:10px auto;
-  width:80%;
-  border-radius:10px;
-}
+body{font-family:Arial;background:#111;color:white;text-align:center;}
+input,button{padding:10px;margin:5px;font-size:16px;border-radius:8px;}
+.card{background:#222;margin:10px auto;padding:10px;width:80%;border-radius:10px;}
 </style>
 </head>
 
 <body>
 
-<h1>🎭 FBE IMPOSTEUR</h1>
+<h1>🎭 FBE IMPOSTEUR ONLINE</h1>
 
 <div id="login">
   <input id="room" placeholder="Code de partie">
-  <input id="name" placeholder="Ton pseudo">
+  <input id="name" placeholder="Pseudo">
   <br>
   <button onclick="join()">Rejoindre</button>
 </div>
@@ -40,19 +28,41 @@ input, button{
 <div id="game" style="display:none;">
   <h2 id="info"></h2>
 
-  <input id="word" placeholder="Ton mot">
-  <button onclick="sendWord()">Envoyer</button>
+  <h3 id="word"></h3>
 
-  <h3>Mots des joueurs :</h3>
+  <input id="inputWord" placeholder="Ton mot">
+  <button onclick="send()">Envoyer</button>
+
+  <h3>Mots en direct :</h3>
   <div id="words"></div>
 </div>
 
 <script>
 
+// 🔥 CONFIG FIREBASE (remplace par la tienne si besoin)
+const firebaseConfig = {
+  apiKey: "XXX",
+  authDomain: "XXX",
+  databaseURL: "XXX",
+  projectId: "XXX"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
 let room="";
 let player="";
+let role="";
+let baseWord="";
 
-let dataStore = {}; // stockage local simple
+const words = [
+  ["daron","daronne"],
+  ["snap","instagram"],
+  ["ps5","xbox"],
+  ["tacos","kebab"],
+  ["école","collège"],
+  ["voiture","moto"]
+];
 
 function join(){
   room=document.getElementById("room").value;
@@ -61,26 +71,31 @@ function join(){
   document.getElementById("login").style.display="none";
   document.getElementById("game").style.display="block";
 
-  document.getElementById("info").innerText=
-  "Room: "+room+" | Joueur: "+player;
+  let pair = words[Math.floor(Math.random()*words.length)];
 
-  if(!dataStore[room]) dataStore[room]={};
+  let impostor = Math.floor(Math.random()*10);
 
-  updateDisplay();
+  role = (Math.random() < 0.2) ? pair[1] : pair[0];
+  baseWord = pair[0];
+
+  document.getElementById("word").innerText =
+    "Ton mot : " + role;
+
+  db.ref("rooms/"+room+"/players/"+player).set(role);
+
+  db.ref("rooms/"+room+"/players").on("value", snap=>{
+    let data = snap.val() || {};
+    let html="";
+    for(let p in data){
+      html += "<div class='card'>"+p+" a joué un mot</div>";
+    }
+    document.getElementById("words").innerHTML=html;
+  });
 }
 
-function sendWord(){
-  let w=document.getElementById("word").value;
-  dataStore[room][player]=w;
-  updateDisplay();
-}
-
-function updateDisplay(){
-  let html="";
-  for(let p in dataStore[room]){
-    html += "<div class='card'><b>"+p+"</b> : "+dataStore[room][p]+"</div>";
-  }
-  document.getElementById("words").innerHTML=html;
+function send(){
+  let w=document.getElementById("inputWord").value;
+  db.ref("rooms/"+room+"/words/"+player).set(w);
 }
 
 </script>
